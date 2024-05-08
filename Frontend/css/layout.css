@@ -203,7 +203,7 @@ ul#nav li.current a { color: #F06000; }
 }
 #about p {
    line-height: 30px;
-   color: #7A7A7A;
+   color: #d7d7d7;
 }
 #about .profile-pic {
    position: relative;
@@ -251,7 +251,7 @@ ul#nav li.current a { color: #F06000; }
    letter-spacing: 1px;
 }
 #resume h1 span {
-   border-bottom: 3px solid #11ABB0;
+   border-bottom: 3px solid #0b5394;
    padding-bottom: 6px;
 }
 #resume h3 {
