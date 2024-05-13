@@ -1,24 +1,42 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+
+
 using Microsoft.Extensions.Logging;
 
-namespace Company.Function
+namespace Api.Function;
+
+public class GetVisitorCounter
 {
-    public class GetResumeCounter
+    private readonly ILogger<GetVisitorCounter> _logger;
+    private readonly IVisitorCounterService _visitorCounterService;
+
+    public GetVisitorCounter(ILogger<GetVisitorCounter> logger, IVisitorCounterService visitorCounterService)
     {
-        private readonly ILogger<GetResumeCounter> _logger;
+        _logger = logger;
+        _visitorCounterService = visitorCounterService;
+    }
 
-        public GetResumeCounter(ILogger<GetResumeCounter> logger)
-        {
-            _logger = logger;
-        }
+    [Function("GetVisitorCounter")]
+    public async Task<UpdatedCounter> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+    [CosmosDBInput("CloudResume","Counter", Connection = "CosmosDbConnectionString", Id = "index",
+            PartitionKey = "index")] Counter counter)
+    {
 
-        [Function("GetResumeCounter")]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+
+        counter = _visitorCounterService.IncrementCounter(counter);
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", "application/json; charset=utf-8");
+        string jsonString = JsonSerializer.Serialize(counter);
+        await response.WriteStringAsync(jsonString);
+
+        return new UpdatedCounter
         {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
-            return new OkObjectResult("Welcome to Azure Functions!");
-        }
+            NewCounter = counter,
+            HttpResponse = response
+        };
     }
 }
